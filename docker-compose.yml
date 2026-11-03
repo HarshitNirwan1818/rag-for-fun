@@ -19,7 +19,7 @@ services:
       - ./backend:/app
       - upload_data:/app/uploads
     environment:
-      - GROQ_API_KEY=your_groq_api_key_here
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
     depends_on:
