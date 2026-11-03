@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_qdrant import QdrantVectorStore
+from langchain_community.vectorstores import Qdrant
 from langchain_groq import ChatGroq
 from langchain.chains import RetrievalQA
 from qdrant_client import QdrantClient
@@ -44,7 +44,7 @@ if not client.collection_exists(collection_name=COLLECTION_NAME):
         vectors_config=VectorParams(size=384, distance=Distance.COSINE),
     )
 
-vectorstore = QdrantVectorStore(
+vectorstore = Qdrant(
     client=client,
     collection_name=COLLECTION_NAME,
     embedding=embeddings,
