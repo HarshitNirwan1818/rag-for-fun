@@ -47,7 +47,7 @@ if not client.collection_exists(collection_name=COLLECTION_NAME):
 vectorstore = Qdrant(
     client=client,
     collection_name=COLLECTION_NAME,
-    embedding=embeddings,
+    embeddings=embeddings,
 )
 
 class QueryRequest(BaseModel):
