@@ -33,9 +33,9 @@ COLLECTION_NAME = "org_documents"
 
 # Initialize local embeddings and LLM
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-lllm = ChatGroq(
+llm = ChatGroq(
     temperature=0,
-    model_name="llama-3.1-8b-instant",  # or "llama-3.3-70b-versatile"
+    model_name="llama-3.3-70b-versatile",
     groq_api_key=os.getenv("GROQ_API_KEY")
 )
 
