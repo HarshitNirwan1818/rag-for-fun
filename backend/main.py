@@ -33,7 +33,11 @@ COLLECTION_NAME = "org_documents"
 
 # Initialize local embeddings and LLM
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-llm = ChatGroq(temperature=0, model_name="llama3-8b-8192")
+lllm = ChatGroq(
+    temperature=0,
+    model_name="llama-3.1-8b-instant",  # or "llama-3.3-70b-versatile"
+    groq_api_key=os.getenv("GROQ_API_KEY")
+)
 
 # Connect to Qdrant client
 client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
