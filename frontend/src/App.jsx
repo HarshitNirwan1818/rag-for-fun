@@ -159,7 +159,7 @@ export default function App() {
                                     padding: "12px 16px",
                                     borderRadius: msg.sender === "user" ? "16px 16px 0 16px" : "16px 16px 16px 0",
                                     boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                                    fontSize: "145px",
+                                    fontSize: "14px", // <-- Change this from 145px to 14px
                                     lineHeight: "1.5",
                                     whiteSpace: "pre-wrap",
                                     wordBreak: "break-word"
