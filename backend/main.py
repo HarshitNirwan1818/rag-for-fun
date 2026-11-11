@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 import requests
-from typing import List
+from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -165,17 +165,22 @@ async def upload_document(file: UploadFile = File(...)):
             os.remove(tmp_path)
             
 class QueryRequest(BaseModel):
-    query: str
+    query: Optional[str] = None
+    question: Optional[str] = None
 
 @app.post("/chat")
 async def chat_with_docs(request: QueryRequest):
+    # Grab whichever field was sent by the client
+    user_input = request.query or request.question
+    
+    if not user_input:
+        raise HTTPException(status_code=422, detail="Field 'query' or 'question' is required")
+
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm, 
         chain_type="stuff", 
         retriever=vectorstore.as_retriever()
     )
     
-    # Use request.question here
-    response = qa_chain.invoke({"query": request.question}) 
-    
+    response = qa_chain.invoke({"query": user_input})
     return {"response": response}
