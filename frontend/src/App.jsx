@@ -35,7 +35,13 @@ export default function App() {
 
         try {
             const res = await axios.post(`${API_BASE}/chat`, { question: query });
-            setChatLog([...newLog, { sender: "ai", text: res.data.answer }]);
+
+            // Extract response safely whether it's a string or nested object
+            const botReply = typeof res.data.response === 'object'
+                ? res.data.response.result
+                : res.data.response;
+
+            setChatLog([...newLog, { sender: "ai", text: botReply }]);
         } catch (err) {
             setChatLog([...newLog, { sender: "ai", text: "Error fetching response from knowledge base." }]);
         } finally {
