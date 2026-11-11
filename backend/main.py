@@ -172,12 +172,6 @@ class QueryRequest(BaseModel):
 async def chat_with_docs(request: QueryRequest):
     user_input = request.query or request.question
     
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm, 
-        chain_type="stuff", 
-        retriever=vectorstore.as_retriever()
-    )
-    
     chain_output = qa_chain.invoke({"query": user_input})
     
     # Return just the text string from the chain's "result" field

@@ -10,7 +10,7 @@ export default function App() {
     const [darkMode, setDarkMode] = useState(false);
     const chatEndRef = useRef(null);
 
-    const API_BASE = "http://localhost:8000";
+    const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
     // Theme color dictionary
     const theme = {
@@ -38,7 +38,8 @@ export default function App() {
         try {
             setUploadStatus("Uploading & Indexing...");
             const res = await axios.post(`${API_BASE}/upload`, formData);
-            setUploadStatus(res.data.message || "File uploaded successfully!");
+            const { filename, chunks_indexed } = res.data;
+            setUploadStatus(`✅ "${filename}" indexed — ${chunks_indexed} chunks stored.`);
         } catch (err) {
             setUploadStatus("Upload failed. Check backend connection.");
         }
