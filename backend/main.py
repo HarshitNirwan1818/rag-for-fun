@@ -163,10 +163,10 @@ async def upload_document(file: UploadFile = File(...)):
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
-
+            
 class QueryRequest(BaseModel):
     query: str
-    
+
 @app.post("/chat")
 async def chat_with_docs(request: QueryRequest):
     qa_chain = RetrievalQA.from_chain_type(
