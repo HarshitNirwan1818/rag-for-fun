@@ -174,5 +174,8 @@ async def chat_with_docs(request: QueryRequest):
         chain_type="stuff", 
         retriever=vectorstore.as_retriever()
     )
-    response = qa_chain.invoke(request.query)
-    return {"answer": response["result"]}
+    
+    # Use request.question here
+    response = qa_chain.invoke({"query": request.question}) 
+    
+    return {"response": response}
