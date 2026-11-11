@@ -1,3 +1,4 @@
+#main file
 import os
 import shutil
 import tempfile
@@ -163,15 +164,15 @@ async def upload_document(file: UploadFile = File(...)):
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-@app.post("/chat")
-def chat_with_docs(request: ChatRequest):
-    """Processes user query against stored vectors and returns LLM synthesis."""
-    if not request.question.strip():
-        raise HTTPException(status_code=400, detail="Question cannot be empty.")
+class QueryRequest(BaseModel):
+    query: str
     
-    try:
-        response = qa_chain.invoke(request.question)
-        answer = response.get("result", "No relevant information found.")
-        return {"answer": answer, "model_used": SELECTED_MODEL}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error executing RAG query: {str(e)}")
+@app.post("/chat")
+async def chat_with_docs(request: QueryRequest):
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm, 
+        chain_type="stuff", 
+        retriever=vectorstore.as_retriever()
+    )
+    response = qa_chain.invoke(request.question)
+    return {"answer": response["result"]}
