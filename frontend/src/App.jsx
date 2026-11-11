@@ -7,11 +7,24 @@ export default function App() {
     const [query, setQuery] = useState("");
     const [chatLog, setChatLog] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [darkMode, setDarkMode] = useState(false);
     const chatEndRef = useRef(null);
 
     const API_BASE = "http://localhost:8000";
 
-    // Auto-scroll to the bottom of the chat log
+    // Theme color dictionary
+    const theme = {
+        appBg: darkMode ? "#0f172a" : "#f1f5f9",
+        cardBg: darkMode ? "#1e293b" : "#ffffff",
+        textMain: darkMode ? "#f8fafc" : "#1e293b",
+        textMuted: darkMode ? "#94a3b8" : "#64748b",
+        border: darkMode ? "#334155" : "#e2e8f0",
+        inputBg: darkMode ? "#0f172a" : "#ffffff",
+        inputBorder: darkMode ? "#475569" : "#cbd5e1",
+        botBubbleBg: darkMode ? "#334155" : "#f1f5f9",
+        botBubbleText: darkMode ? "#f8fafc" : "#1e293b",
+    };
+
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chatLog, loading]);
@@ -57,28 +70,46 @@ export default function App() {
     return (
         <div style={{
             minHeight: "100vh",
-            background: "#f1f5f9",
+            background: theme.appBg,
             padding: "40px 20px",
-            fontFamily: "'Inter', system-ui, -apple-system, sans-serif"
+            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+            transition: "background 0.3s ease"
         }}>
             <div style={{ maxWidth: "850px", margin: "auto" }}>
 
-                {/* Header */}
-                <div style={{ marginBottom: "30px", textAlign: "center" }}>
-                    <h2 style={{ color: "#1e293b", margin: "0 0 8px 0", fontSize: "28px" }}>Org-Level RAG Assistant</h2>
-                    <p style={{ color: "#64748b", margin: 0, fontSize: "15px" }}>Upload corporate documentation and chat intelligently with your knowledge base.</p>
+                {/* Header with Theme Toggle */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
+                    <div>
+                        <h2 style={{ color: theme.textMain, margin: "0 0 4px 0", fontSize: "28px" }}>Org-Level RAG Assistant</h2>
+                        <p style={{ color: theme.textMuted, margin: 0, fontSize: "15px" }}>Upload corporate documentation and chat intelligently.</p>
+                    </div>
+                    <button
+                        onClick={() => setDarkMode(!darkMode)}
+                        style={{
+                            background: theme.cardBg,
+                            color: theme.textMain,
+                            border: `1px solid ${theme.border}`,
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontWeight: "500",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                        }}
+                    >
+                        {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+                    </button>
                 </div>
 
                 {/* Upload Card */}
                 <div style={{
-                    background: "#ffffff",
-                    border: "1px solid #e2e8f0",
+                    background: theme.cardBg,
+                    border: `1px solid ${theme.border}`,
                     padding: "24px",
                     marginBottom: "30px",
                     borderRadius: "16px",
-                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)"
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)"
                 }}>
-                    <h3 style={{ margin: "0 0 16px 0", color: "#334155", fontSize: "18px" }}>1. Upload Knowledge Base Document</h3>
+                    <h3 style={{ margin: "0 0 16px 0", color: theme.textMain, fontSize: "18px" }}>1. Upload Knowledge Base Document</h3>
                     <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                         <input
                             type="file"
@@ -86,9 +117,10 @@ export default function App() {
                             style={{
                                 flex: 1,
                                 padding: "8px",
-                                border: "1px dashed #cbd5e1",
+                                border: `1px dashed ${theme.inputBorder}`,
                                 borderRadius: "8px",
-                                background: "#f8fafc",
+                                background: theme.inputBg,
+                                color: theme.textMain,
                                 cursor: "pointer"
                             }}
                         />
@@ -101,11 +133,8 @@ export default function App() {
                                 padding: "10px 20px",
                                 borderRadius: "8px",
                                 fontWeight: "600",
-                                cursor: "pointer",
-                                transition: "background 0.2s"
+                                cursor: "pointer"
                             }}
-                            onMouseOver={(e) => e.target.style.background = "#4338ca"}
-                            onMouseOut={(e) => e.target.style.background = "#4f46e5"}
                         >
                             Upload & Index
                         </button>
@@ -119,14 +148,14 @@ export default function App() {
 
                 {/* Chat Card */}
                 <div style={{
-                    background: "#ffffff",
-                    border: "1px solid #e2e8f0",
+                    background: theme.cardBg,
+                    border: `1px solid ${theme.border}`,
                     borderRadius: "16px",
-                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
                     overflow: "hidden"
                 }}>
-                    <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9", background: "#f8fafc" }}>
-                        <h3 style={{ margin: 0, color: "#334155", fontSize: "18px" }}>2. Chat with Documents</h3>
+                    <div style={{ padding: "20px 24px", borderBottom: `1px solid ${theme.border}`, background: theme.cardBg }}>
+                        <h3 style={{ margin: 0, color: theme.textMain, fontSize: "18px" }}>2. Chat with Documents</h3>
                     </div>
 
                     {/* Chat Messages Area */}
@@ -134,13 +163,13 @@ export default function App() {
                         height: "400px",
                         overflowY: "auto",
                         padding: "24px",
-                        background: "#ffffff",
+                        background: theme.cardBg,
                         display: "flex",
                         flexDirection: "column",
                         gap: "16px"
                     }}>
                         {chatLog.length === 0 && (
-                            <div style={{ margin: "auto", textAlign: "center", color: "#94a3b8" }}>
+                            <div style={{ margin: "auto", textAlign: "center", color: theme.textMuted }}>
                                 <p style={{ fontSize: "16px", marginBottom: "4px" }}>No messages yet.</p>
                                 <p style={{ fontSize: "14px" }}>Ask a question below to query your uploaded documents.</p>
                             </div>
@@ -154,12 +183,12 @@ export default function App() {
                             }}>
                                 <div style={{
                                     maxWidth: "75%",
-                                    background: msg.sender === "user" ? "#4f46e5" : "#f1f5f9",
-                                    color: msg.sender === "user" ? "#ffffff" : "#1e293b",
+                                    background: msg.sender === "user" ? "#4f46e5" : theme.botBubbleBg,
+                                    color: msg.sender === "user" ? "#ffffff" : theme.botBubbleText,
                                     padding: "12px 16px",
                                     borderRadius: msg.sender === "user" ? "16px 16px 0 16px" : "16px 16px 16px 0",
                                     boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                                    fontSize: "14px", // <-- Change this from 145px to 14px
+                                    fontSize: "14px",
                                     lineHeight: "1.5",
                                     whiteSpace: "pre-wrap",
                                     wordBreak: "break-word"
@@ -172,17 +201,14 @@ export default function App() {
                         {loading && (
                             <div style={{ display: "flex", justifyContent: "flex-start" }}>
                                 <div style={{
-                                    background: "#f1f5f9",
-                                    color: "#64748b",
+                                    background: theme.botBubbleBg,
+                                    color: theme.textMuted,
                                     padding: "12px 16px",
                                     borderRadius: "16px 16px 16px 0",
                                     fontStyle: "italic",
-                                    fontSize: "14px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px"
+                                    fontSize: "14px"
                                 }}>
-                                    <span className="pulse">AI is reading documents...</span>
+                                    AI is reading documents...
                                 </div>
                             </div>
                         )}
@@ -192,8 +218,8 @@ export default function App() {
                     {/* Chat Input Area */}
                     <div style={{
                         padding: "16px 24px",
-                        borderTop: "1px solid #e2e8f0",
-                        background: "#f8fafc",
+                        borderTop: `1px solid ${theme.border}`,
+                        background: theme.cardBg,
                         display: "flex",
                         gap: "12px"
                     }}>
@@ -207,10 +233,11 @@ export default function App() {
                                 flex: 1,
                                 padding: "12px 16px",
                                 borderRadius: "8px",
-                                border: "1px solid #cbd5e1",
+                                border: `1px solid ${theme.inputBorder}`,
                                 outline: "none",
                                 fontSize: "14px",
-                                background: "#ffffff"
+                                background: theme.inputBg,
+                                color: theme.textMain
                             }}
                         />
                         <button
@@ -222,11 +249,8 @@ export default function App() {
                                 padding: "0 24px",
                                 borderRadius: "8px",
                                 fontWeight: "600",
-                                cursor: "pointer",
-                                transition: "background 0.2s"
+                                cursor: "pointer"
                             }}
-                            onMouseOver={(e) => e.target.style.background = "#4338ca"}
-                            onMouseOut={(e) => e.target.style.background = "#4f46e5"}
                         >
                             Send
                         </button>
