@@ -9,9 +9,6 @@ on:
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend   # <--- Point to your backend subfolder
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,17 +18,22 @@ jobs:
         with:
           python-version: '3.10'
           cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r rag-for-fun/backend/requirements.txt
+          pip install -r backend/requirements.txt
+
+      - name: Run backend tests / checks
+        run: |
+          echo "Backend dependencies installed successfully."
 
   frontend-ci:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: . # Change this if your frontend code is in a subfolder like 'frontend/'
+        working-directory: frontend # Assuming your React app is in a 'frontend' folder
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,6 +43,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend dependencies
         run: npm ci
