@@ -123,46 +123,56 @@ class ChatRequest(BaseModel):
 def read_root():
     return {"status": "Backend is running", "groq_model": SELECTED_MODEL}
 
-@app.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
-    """Uploads a PDF or TXT document, chunks it, and indexes it into Qdrant."""
+async def process_single_file(file: UploadFile) -> dict:
+    """Processes one uploaded file: loads, chunks, and indexes into Qdrant."""
     filename = file.filename.lower()
     if not (filename.endswith(".pdf") or filename.endswith(".txt")):
-        raise HTTPException(status_code=400, detail="Only .pdf and .txt files are supported.")
+        return {"filename": file.filename, "status": "error", "detail": "Only .pdf and .txt files are supported."}
 
-    # Save uploaded file temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp_file:
         shutil.copyfileobj(file.file, tmp_file)
         tmp_path = tmp_file.name
 
     try:
-        # Load document content
-        if filename.endswith(".pdf"):
-            loader = PyPDFLoader(tmp_path)
-        else:
-            loader = TextLoader(tmp_path)
-        
+        loader = PyPDFLoader(tmp_path) if filename.endswith(".pdf") else TextLoader(tmp_path)
         docs = loader.load()
 
-        # Split document into chunks
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         chunks = text_splitter.split_documents(docs)
 
-        # Index into Qdrant
         vectorstore.add_documents(chunks)
 
-        return {
-            "status": "success",
-            "filename": file.filename,
-            "chunks_indexed": len(chunks)
-        }
+        return {"filename": file.filename, "status": "success", "chunks_indexed": len(chunks)}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process document: {str(e)}")
-    
+        return {"filename": file.filename, "status": "error", "detail": str(e)}
+
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
+
+
+@app.post("/upload")
+async def upload_documents(files: List[UploadFile] = File(...)):
+    """Uploads one or more PDF/TXT documents, chunks them, and indexes into Qdrant."""
+    results = []
+    for file in files:
+        result = await process_single_file(file)
+        results.append(result)
+
+    total_chunks = sum(r.get("chunks_indexed", 0) for r in results)
+    success_count = sum(1 for r in results if r["status"] == "success")
+    error_count = len(results) - success_count
+
+    return {
+        "files": results,
+        "summary": {
+            "total": len(results),
+            "succeeded": success_count,
+            "failed": error_count,
+            "total_chunks_indexed": total_chunks
+        }
+    }
             
 class QueryRequest(BaseModel):
     query: Optional[str] = None
@@ -171,12 +181,6 @@ class QueryRequest(BaseModel):
 @app.post("/chat")
 async def chat_with_docs(request: QueryRequest):
     user_input = request.query or request.question
-    
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm, 
-        chain_type="stuff", 
-        retriever=vectorstore.as_retriever()
-    )
     
     chain_output = qa_chain.invoke({"query": user_input})
     
