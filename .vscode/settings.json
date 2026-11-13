@@ -1,0 +1,6 @@
+{
+    // Load .env variables automatically into VS Code terminals
+    "python.terminal.useEnvFile": true,
+    "python.envFile": "${workspaceFolder}/.env"
+}
+

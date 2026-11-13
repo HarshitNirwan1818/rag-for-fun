@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
 export default function App() {
-    const [file, setFile] = useState(null);
-    const [uploadStatus, setUploadStatus] = useState("");
+    const [files, setFiles] = useState([]);
+    const [uploadResults, setUploadResults] = useState([]);
+    const [uploading, setUploading] = useState(false);
     const [query, setQuery] = useState("");
     const [chatLog, setChatLog] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -29,19 +30,20 @@ export default function App() {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chatLog, loading]);
 
-    const handleUpload = async (e) => {
-        e.preventDefault();
-        if (!file) return;
+    const handleUpload = async () => {
+        if (files.length === 0 || uploading) return;
         const formData = new FormData();
-        formData.append("file", file);
+        files.forEach(f => formData.append("files", f));
 
         try {
-            setUploadStatus("Uploading & Indexing...");
+            setUploading(true);
+            setUploadResults([]);
             const res = await axios.post(`${API_BASE}/upload`, formData);
-            const { filename, chunks_indexed } = res.data;
-            setUploadStatus(`✅ "${filename}" indexed — ${chunks_indexed} chunks stored.`);
+            setUploadResults(res.data.files);
         } catch (err) {
-            setUploadStatus("Upload failed. Check backend connection.");
+            setUploadResults([{ filename: "Unknown", status: "error", detail: "Upload failed. Check backend connection." }]);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -110,11 +112,13 @@ export default function App() {
                     borderRadius: "16px",
                     boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)"
                 }}>
-                    <h3 style={{ margin: "0 0 16px 0", color: theme.textMain, fontSize: "18px" }}>1. Upload Knowledge Base Document</h3>
+                    <h3 style={{ margin: "0 0 16px 0", color: theme.textMain, fontSize: "18px" }}>1. Upload Knowledge Base Documents</h3>
                     <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                         <input
                             type="file"
-                            onChange={(e) => setFile(e.target.files[0])}
+                            multiple
+                            accept=".pdf,.txt"
+                            onChange={(e) => setFiles(Array.from(e.target.files))}
                             style={{
                                 flex: 1,
                                 padding: "8px",
@@ -127,23 +131,46 @@ export default function App() {
                         />
                         <button
                             onClick={handleUpload}
+                            disabled={files.length === 0 || uploading}
                             style={{
-                                background: "#4f46e5",
+                                background: files.length === 0 || uploading ? "#a5b4fc" : "#4f46e5",
                                 color: "#fff",
                                 border: "none",
                                 padding: "10px 20px",
                                 borderRadius: "8px",
                                 fontWeight: "600",
-                                cursor: "pointer"
+                                cursor: files.length === 0 || uploading ? "not-allowed" : "pointer",
+                                whiteSpace: "nowrap"
                             }}
                         >
-                            Upload & Index
+                            {uploading ? "Indexing..." : `Upload & Index${files.length > 1 ? ` (${files.length} files)` : ""}`}
                         </button>
                     </div>
-                    {uploadStatus && (
-                        <p style={{ marginTop: "12px", fontSize: "14px", color: uploadStatus.includes("failed") ? "#dc2626" : "#16a34a", fontWeight: "500" }}>
-                            {uploadStatus}
-                        </p>
+
+                    {/* Per-file results */}
+                    {uploadResults.length > 0 && (
+                        <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                            {uploadResults.map((r, i) => (
+                                <div key={i} style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    padding: "8px 12px",
+                                    borderRadius: "8px",
+                                    background: r.status === "success" ? (darkMode ? "#14532d33" : "#f0fdf4") : (darkMode ? "#7f1d1d33" : "#fef2f2"),
+                                    border: `1px solid ${r.status === "success" ? "#86efac" : "#fca5a5"}`
+                                }}>
+                                    <span style={{ fontSize: "13px", color: theme.textMain, fontWeight: "500" }}>
+                                        {r.status === "success" ? "✅" : "❌"} {r.filename}
+                                    </span>
+                                    <span style={{ fontSize: "12px", color: theme.textMuted }}>
+                                        {r.status === "success"
+                                            ? `${r.chunks_indexed} chunks`
+                                            : r.detail}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
 
