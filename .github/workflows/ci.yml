@@ -9,6 +9,9 @@ on:
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend   # <--- Point to your backend subfolder
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,12 +25,7 @@ jobs:
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt # Adjust if your requirements file has a different name or path
-
-      - name: Run backend tests / checks
-        run: |
-          # Add your test command here, e.g., pytest
-          echo "Backend dependencies installed successfully."
+          pip install -r /rag-for-fun/backend/requirements.txt
 
   frontend-ci:
     runs-on: ubuntu-latest
